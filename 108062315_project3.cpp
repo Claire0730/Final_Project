@@ -208,40 +208,36 @@ const int SIZE = 8;
 std::vector<Point> next_valid_spots;
 OthelloBoard cur;
 
+
 const int weight[8][8] =
 {
      65,  -3, 6, 4, 4, 6, -3, 65,
-     -3, -29, 3, 1, 1, 3, -29, -3,
+     -3, -50, 3, 1, 1, 3, -50, -3,
      6, 3, 5, 3, 3, 5, 3, 6,
      4, 1, 3, 1, 1, 3, 1, 4,
      4, 1, 3, 1, 1, 3, 1, 4,
      6, 3, 5, 3, 3, 5, 3, 6,
-     -3, -29, 3, 1, 1, 3, -29, -3,
+     -3, -50, 3, 1, 1, 3, -50, -3,
      65, -3, 6, 4, 4, 6,  -3, 65,
 };
-/*
-const int d[8][2] =
-{
-    -1, 0, 1, 0, 0, -1, 0, 1,
-    -1, -1, -1, 1, 1, -1, 1, 1
-};*/
 
 int ans;
 
 int alpha_beta(OthelloBoard &input_board,int depth, int alpha, int beta, bool maximizingPlayer){
     int value=0;
     OthelloBoard f_board = input_board;
-    if(depth >=3){//if depth = 0 || node is terminal node
+    if(depth >= 8){//if depth = 0 || node is terminal node
         int temp[8][8];
         int value=0;
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
                // cout<<input_board.board[i][j]<<' ';
-                temp[i][j] = f_board.board[i][j]>1 ? -1:f_board.board[i][j];
-                value += weight[i][j]*temp[i][j];
+                //temp[i][j] = f_board.board[i][j]>1 ? -1:f_board.board[i][j];
+                value += weight[i][j]*f_board.board[i][j];
             }
             //cout<<endl;
         }
+        value -= f_board.get_valid_spots().size()*2;
         return value;
     }
 
@@ -252,6 +248,14 @@ int alpha_beta(OthelloBoard &input_board,int depth, int alpha, int beta, bool ma
         int s = input_board.next_valid_spots.size();
         for(int i=0 ;i<s; i++){
             Point p = input_board.next_valid_spots[i];
+            if(depth == 0){
+                if((p.x == 0 && p.y == 0)||(p.x == 0 && p.y == 7)||(p.x == 7 && p.y == 0)||(p.x == 7 && p.y == 7)){
+                   // cout<<"get corner!!!!"<<endl;
+                    ans = i;
+                    value = 0;
+                    break;
+                }
+            }
             //cout<<"flip: "<<p.x<<' '<<p.y<<endl;
             for(int k=0; k<8; k++){
                 for(int j=0; j<8; j++){
@@ -273,7 +277,7 @@ int alpha_beta(OthelloBoard &input_board,int depth, int alpha, int beta, bool ma
             if(val > alpha){
                 value = val;
                 alpha = val;
-                ans = i;
+                if(depth == 0)ans = i;
             }
             if(alpha >= beta)break;
 
@@ -311,7 +315,7 @@ int alpha_beta(OthelloBoard &input_board,int depth, int alpha, int beta, bool ma
             if(val < beta){
                 value = val;
                 beta = val;
-                ans = i;
+                if(depth == 0)ans = i;
             }
 
             if(beta<=alpha)break;
@@ -350,6 +354,7 @@ void read_valid_spots(std::ifstream& fin) {
 void write_valid_spot(std::ofstream& fout) {
     int n_valid_spots = cur.next_valid_spots.size();
     int value = alpha_beta(cur, 0, -10000000000, 10000000000, true);
+
     Point p = cur.next_valid_spots[ans];
     fout << p.x <<" "<<p.y<<std::endl;
     fout.flush();
